@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 project(placo)
 
+set(Boost_DEBUG ON)
+set(BOOST_ROOT $ENV{CONDA_PREFIX})
+set(Boost_PYTHON_TYPE python311)
+set(BOOST_PYTHON_VERSION 3.11)
+find_package(Boost REQUIRED COMPONENTS python311)
 find_package(Threads)
 find_package(pinocchio REQUIRED)
 find_package(eiquadprog REQUIRED)
@@ -155,18 +160,19 @@ add_library(placo MODULE
 )
 set_target_properties(placo PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB})
 
-target_link_libraries(placo ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} libplaco)
+# target_link_libraries(placo ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} libplaco)
+target_link_libraries(placo Boost::python311 ${PYTHON_LIBRARIES} libplaco)
 target_include_directories(placo PRIVATE ${PYTHON_INCLUDE_DIRS})
 
-add_custom_command(
-    TARGET placo POST_BUILD
-    COMMAND doxystub
-        --module placo
-        --doxygen_directory "${CMAKE_CURRENT_SOURCE_DIR}"
-        --output "${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo.pyi"
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}"
-    COMMENT "Generating stubs..."
-)
+# add_custom_command(
+#     TARGET placo POST_BUILD
+#     COMMAND doxystub
+#         --module placo
+#         --doxygen_directory "${CMAKE_CURRENT_SOURCE_DIR}"
+#         --output "${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo.pyi"
+#     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}"
+#     COMMENT "Generating stubs..."
+# )
 
 ADD_CUSTOM_TARGET(placo_utils_files ALL
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -178,5 +184,5 @@ set_target_properties(placo PROPERTIES INSTALL_RPATH "\$ORIGIN/../..")
 set_target_properties(libplaco PROPERTIES INSTALL_RPATH "\$ORIGIN")
 install(TARGETS libplaco DESTINATION lib)
 install(TARGETS placo DESTINATION ${PYTHON_SITELIB})
-install(FILES ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo.pyi DESTINATION ${PYTHON_SITELIB})
+# install(FILES ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo.pyi DESTINATION ${PYTHON_SITELIB})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo_utils DESTINATION ${PYTHON_SITELIB})
