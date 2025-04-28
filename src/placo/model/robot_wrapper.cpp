@@ -114,6 +114,40 @@ RobotWrapper::RobotWrapper(std::string model_directory, int flags, std::string u
   }
 }
 
+RobotWrapper::RobotWrapper(const pinocchio::Model& in_model, const pinocchio::GeometryModel& in_collision_model, const pinocchio::GeometryModel& in_visual_model)
+  : model(in_model), collision_model(in_collision_model), visual_model(in_visual_model)
+{
+  // Creating data
+  data = new pinocchio::Data(model);
+
+  // Assuming that motors with limits both equals to zero are not defined in the
+  // URDF, setting them to the maximum possible value
+  for (int k = 0; k < model.nq; k++)
+  {
+    if (model.lowerPositionLimit[k] == 0 && model.upperPositionLimit[k] == 0)
+    {
+      model.lowerPositionLimit[k] = std::numeric_limits<double>::lowest();
+      model.upperPositionLimit[k] = std::numeric_limits<double>::max();
+    }
+  }
+
+  reset();
+  pinocchio::computeAllTerms(model, *data, state.q, state.qd);
+  update_kinematics();
+
+  auto collisions = self_collisions();
+  if (collisions.size() > 0)
+  {
+    std::cerr << "WARNING: Robot has the following self collisions in neutral position:" << std::endl;
+
+    for (auto& collision : collisions)
+    {
+      std::cerr << "  -" << collision.bodyA << " collides with " << collision.bodyB << std::endl;
+    }
+  }
+}
+
+
 bool RobotWrapper::Collision::operator==(const Collision& other)
 {
   return (objA == other.objA && objB == other.objB);
