@@ -41,6 +41,7 @@ public:
    * file
    */
   RobotWrapper(std::string model_directory, int flags = 0, std::string urdf_content = "");
+  RobotWrapper(const pinocchio::Model& model, const pinocchio::GeometryModel& collision_model, const pinocchio::GeometryModel& visual_model);
 
   /**
    * @brief Represents the robot state
