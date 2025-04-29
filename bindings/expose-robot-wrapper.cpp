@@ -168,7 +168,7 @@ void exposeRobotWrapper()
       .add_property("min_distance", &RobotWrapper::Distance::min_distance);
 
   class_<RobotWrapper> robotWrapper =
-      class__<RobotWrapper>("RobotWrapper", init<std::string, optional<int, std::string>>());
+      class__<RobotWrapper>("RobotWrapper", init<const pinocchio::Model&, const pinocchio::GeometryModel&, const pinocchio::GeometryModel&>());
   exposeRobotType<RobotWrapper>(robotWrapper);
 
   class_<HumanoidRobot, bases<RobotWrapper>> humanoidWrapper =
