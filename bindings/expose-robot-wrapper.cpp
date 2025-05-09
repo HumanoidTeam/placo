@@ -167,8 +167,11 @@ void exposeRobotWrapper()
       .def_readwrite("pointB", &RobotWrapper::Distance::pointB)
       .add_property("min_distance", &RobotWrapper::Distance::min_distance);
 
-  class_<RobotWrapper> robotWrapper =
-      class__<RobotWrapper>("RobotWrapper", init<const pinocchio::Model&, const pinocchio::GeometryModel&, const pinocchio::GeometryModel&>());
+  class_<RobotWrapper> robotWrapper("RobotWrapper", no_init);
+  robotWrapper
+      .def(init<std::string, optional<int, std::string>>()) // Constructor with model directory
+      .def(init<const pinocchio::Model&, const pinocchio::GeometryModel&, const pinocchio::GeometryModel&>()) // Constructor with models
+      ;
   exposeRobotType<RobotWrapper>(robotWrapper);
 
   class_<HumanoidRobot, bases<RobotWrapper>> humanoidWrapper =
