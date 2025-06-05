@@ -14,8 +14,20 @@
 #include <json/json.h>
 #include <filesystem>
 #include <algorithm>
+#include <regex>
 
 namespace fs = boost::filesystem;
+
+namespace {
+inline const auto kPinocchioUnboundedJoint = std::regex("JointModelRUB([XYZ])$");
+inline const auto kPinocchioRevoluteUnboundedUnalignedJoint =
+    std::string_view("JointModelRevoluteUnboundedUnaligned");
+
+bool is_continuous_joint(const pinocchio::JointModel& joint) {
+  return std::regex_match(joint.shortname(), kPinocchioUnboundedJoint) ||
+         joint.shortname() == kPinocchioRevoluteUnboundedUnalignedJoint;
+}
+}
 
 namespace placo::model
 {
@@ -118,6 +130,18 @@ RobotWrapper::RobotWrapper(std::string model_directory, int flags, std::string u
 RobotWrapper::RobotWrapper(const pinocchio::Model& in_model, const pinocchio::GeometryModel& in_collision_model, const pinocchio::GeometryModel& in_visual_model)
   : model(in_model), collision_model(in_collision_model), visual_model(in_visual_model)
 {
+  const auto &frame = model.frames[0];
+  const std::string root_joint_name = "root_joint";
+
+  PINOCCHIO_THROW(
+      !model.existJointName(root_joint_name), std::invalid_argument,
+      "root_joint already exists as a joint in the kinematic tree.");
+  const auto idx = model.addJoint(
+      frame.parentJoint, root_joint, pinocchio::SE3::Identity(), root_joint_name
+  );
+
+  const auto joint_frame_id = model.addJointFrame(idx, 0);
+  model.appendBodyToJoint(joint_frame_id, pinocchio::Inertia::Zero(), pinocchio::SE3::Identity());
   // Creating data
   data = new pinocchio::Data(model);
 
@@ -178,12 +202,25 @@ pinocchio::FrameIndex RobotWrapper::get_frame_index(const std::string& frame)
 
 void RobotWrapper::set_joint(const std::string& name, double value)
 {
-  state.q[get_joint_offset(name)] = value;
+  const auto joint_index = get_joint_offset(name);
+  if (is_continuous_joint(model.joints[model.getJointId(name)]))
+  {
+    state.q[joint_index] = std::cos(value);
+    state.q[joint_index + 1] = std::sin(value);
+  }
+  else {
+    state.q[joint_index] = value;
+  }
 }
 
 double RobotWrapper::get_joint(const std::string& name)
 {
-  return state.q[get_joint_offset(name)];
+  const auto joint_index = get_joint_offset(name);
+  if (is_continuous_joint(model.joints[model.getJointId(name)]))
+  {
+    return std::atan2(state.q[joint_index + 1], state.q[joint_index]);
+  }
+  return state.q[joint_index];
 }
 
 int RobotWrapper::get_joint_offset(const std::string& name)
@@ -195,12 +232,12 @@ int RobotWrapper::get_joint_offset(const std::string& name)
     throw std::runtime_error(oss.str());
   }
 
-  return 7 + model.getJointId(name) - 2;
+  return model.joints[model.getJointId(name)].idx_q();
 }
 
 int RobotWrapper::get_joint_v_offset(const std::string& name)
 {
-  return 6 + model.getJointId(name) - 2;
+  return model.joints[model.getJointId(name)].idx_v();
 }
 
 double RobotWrapper::get_joint_velocity(const std::string& name)

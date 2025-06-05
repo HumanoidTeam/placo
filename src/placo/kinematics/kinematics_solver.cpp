@@ -4,6 +4,18 @@
 #include "placo/model/robot_wrapper.h"
 #include "placo/problem/problem.h"
 #include "placo/tools/utils.h"
+#include <regex>
+
+namespace {
+inline const auto kPinocchioUnboundedJoint = std::regex("JointModelRUB([XYZ])$");
+inline const auto kPinocchioRevoluteUnboundedUnalignedJoint =
+    std::string_view("JointModelRevoluteUnboundedUnaligned");
+
+bool is_continuous_joint(const pinocchio::JointModel& joint) {
+  return std::regex_match(joint.shortname(), kPinocchioUnboundedJoint) ||
+         joint.shortname() == kPinocchioRevoluteUnboundedUnalignedJoint;
+}
+}
 
 namespace placo::kinematics
 {
@@ -287,19 +299,35 @@ void KinematicsSolver::compute_limits_inequalities()
     throw std::runtime_error("You enabled velocity limits but didn't set solver.dt");
   }
 
-  if (joint_limits)
-  {
-    problem.add_constraint(robot.state.q.bottomRows(N - 6) + qd->expr(6) <=
-                           robot.model.upperPositionLimit.bottomRows(N - 6));
+  if (joint_limits) {
+    for (const auto &joint : robot.model.joints) {
+      const auto &joint_name = robot.model.names[joint.id()];
+      if (joint.id() == std::numeric_limits<pinocchio::JointIndex>::max() ||
+          joint_name == "root_joint" || is_continuous_joint(joint)) {
+        continue; // Skip the universe joint
+      }
+      problem.add_constraint(robot.state.q[joint.idx_q()] +
+                                 qd->expr(joint.idx_v(), 1) <=
+                             robot.model.upperPositionLimit[joint.idx_q()]);
 
-    problem.add_constraint(robot.model.lowerPositionLimit.bottomRows(N - 6) <=
-                           robot.state.q.bottomRows(N - 6) + qd->expr(6));
+      problem.add_constraint(robot.model.lowerPositionLimit[joint.idx_q()] <=
+                             robot.state.q[joint.idx_q()] +
+                                 qd->expr(joint.idx_v(), 1));
+    }
   }
 
   if (velocity_limits)
   {
-    problem.add_constraint(qd->expr(6) <= dt * robot.model.velocityLimit.bottomRows(N - 6));
-    problem.add_constraint(-dt * robot.model.velocityLimit.bottomRows(N - 6) <= qd->expr(6));
+    for (const auto& joint: robot.model.joints)
+    {
+      const auto& joint_name = robot.model.names[joint.id()];
+      if (joint.id() == std::numeric_limits<pinocchio::JointIndex>::max() || joint_name == "root_joint")
+      {
+        continue;  // Skip the universe joint
+      }
+      problem.add_constraint(qd->expr(joint.idx_v(), 1) <= dt * robot.model.velocityLimit(joint.idx_v()));
+      problem.add_constraint(-dt * robot.model.velocityLimit(joint.idx_v()) <= qd->expr(joint.idx_v(), 1));
+    }
   }
 }
 
@@ -376,7 +404,9 @@ Eigen::VectorXd KinematicsSolver::solve(bool apply)
 
   if (masked_fbase)
   {
-    problem.add_constraint(qd->expr(0, 6) == 0.);
+    const auto& base_joint_id = robot.model.getJointId("root_joint");
+    const auto& root_joint = robot.model.joints[base_joint_id];
+    problem.add_constraint(qd->expr(root_joint.idx_v(), 6) == 0.);
   }
 
   compute_limits_inequalities();
