@@ -29,17 +29,6 @@ bool is_continuous_joint(const pinocchio::JointModel& joint) {
 
 namespace fs = boost::filesystem;
 
-namespace {
-inline const auto kPinocchioUnboundedJoint = std::regex("JointModelRUB([XYZ])$");
-inline const auto kPinocchioRevoluteUnboundedUnalignedJoint =
-    std::string_view("JointModelRevoluteUnboundedUnaligned");
-
-bool is_continuous_joint(const pinocchio::JointModel& joint) {
-  return std::regex_match(joint.shortname(), kPinocchioUnboundedJoint) ||
-         joint.shortname() == kPinocchioRevoluteUnboundedUnalignedJoint;
-}
-}
-
 namespace placo::model
 {
 RobotWrapper::RobotWrapper(std::string model_directory, int flags, std::string urdf_content)
