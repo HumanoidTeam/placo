@@ -431,7 +431,7 @@ Eigen::VectorXd KinematicsSolver::solve(bool apply)
     // Initial robot configuration
     auto q_save = robot.state.q;
 
-    robot.state.q = pinocchio::integrate(robot.model, robot.state.q, qd_sol * dt);
+    robot.state.q = pinocchio::integrate(robot.model, robot.state.q, qd_sol);
     if (dt > 0)
     {
       auto qd_save = robot.state.qd;
