@@ -100,6 +100,10 @@ RobotWrapper::RobotWrapper(std::string model_directory, int flags, std::string u
   // Creating data
   data = new pinocchio::Data(model);
 
+  // Initialize asymmetric velocity limit vectors
+  upper_velocity_limits = model.velocityLimit;
+  lower_velocity_limits = -model.velocityLimit;
+
   // Assuming that motors with limits both equals to zero are not defined in the
   // URDF, setting them to the maximum possible value
   for (int k = 0; k < model.nq; k++)
@@ -229,6 +233,28 @@ void RobotWrapper::set_velocity_limits(double limit)
   for (auto& name : joint_names())
   {
     set_velocity_limit(name, limit);
+  }
+}
+
+void RobotWrapper::set_velocity_limits(const std::string& name, double lower_limit, double upper_limit)
+{
+  int k = get_joint_v_offset(name);
+  lower_velocity_limits[k] = lower_limit;
+  upper_velocity_limits[k] = upper_limit;
+  use_asymmetric_velocity_limits = true;
+}
+
+std::pair<double, double> RobotWrapper::get_velocity_limits(const std::string& name)
+{
+  int k = get_joint_v_offset(name);
+  return std::make_pair(lower_velocity_limits[k], upper_velocity_limits[k]);
+}
+
+void RobotWrapper::set_velocity_limits(double lower_limit, double upper_limit)
+{
+  for (auto& name : joint_names())
+  {
+    set_velocity_limits(name, lower_limit, upper_limit);
   }
 }
 

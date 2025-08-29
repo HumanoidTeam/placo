@@ -203,6 +203,30 @@ public:
   void set_velocity_limits(double limit);
 
   /**
+   * @brief Sets asymmetric velocity limits for a given joint.
+   *
+   * @param name joint name
+   * @param lower_limit lower velocity limit (negative value)
+   * @param upper_limit upper velocity limit (positive value)
+   */
+  void set_velocity_limits(const std::string& name, double lower_limit, double upper_limit);
+
+  /**
+   * @brief Gets the velocity limits for a given joint.
+   *
+   * @param name joint name
+   * @return pair of (lower, upper) velocity limits
+   */
+  std::pair<double, double> get_velocity_limits(const std::string& name);
+
+  /**
+   * @brief Set asymmetric velocity limits for **all** the joints
+   * @param lower_limit lower velocity limit (negative value)
+   * @param upper_limit upper velocity limit (positive value)
+   */
+  void set_velocity_limits(double lower_limit, double upper_limit);
+
+  /**
    * @brief Sets the torque limit for a given joint.
    *
    * By default, the joint limits are loaded from the URDF file, this method can be used to override them.
@@ -678,6 +702,21 @@ public:
    * @brief Pinocchio model data
    */
   pinocchio::Data* data;
+
+  /**
+   * @brief Upper velocity limits for each joint
+   */
+  Eigen::VectorXd upper_velocity_limits;
+
+  /**
+   * @brief Lower velocity limits for each joint
+   */
+  Eigen::VectorXd lower_velocity_limits;
+
+  /**
+   * @brief Flag to indicate if asymmetric velocity limits are being used
+   */
+  bool use_asymmetric_velocity_limits = false;
 
 protected:
   /**

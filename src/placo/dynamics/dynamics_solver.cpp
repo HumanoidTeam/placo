@@ -254,33 +254,55 @@ void DynamicsSolver::compute_limits_inequalities(Expression& tau)
 
       if (velocity_vs_torque_limits)
       {
-        double ratio = robot.model.velocityLimit[k + 6] / robot.model.effortLimit[k + 6];
+        double upper_limit = robot.use_asymmetric_velocity_limits ? 
+                           robot.upper_velocity_limits[k + 6] : robot.model.velocityLimit[k + 6];
+        double lower_limit = robot.use_asymmetric_velocity_limits ? 
+                           robot.lower_velocity_limits[k + 6] : -robot.model.velocityLimit[k + 6];
+        
+        double ratio_upper = upper_limit / robot.model.effortLimit[k + 6];
+        double ratio_lower = -lower_limit / robot.model.effortLimit[k + 6];
 
         // qd + dt*qdd <= qd_max - ratio * tau
         // ratio * tau + dt*qdd + qd - qd_max <= 0
-        e.A.block(constraint, 0, 1, problem.n_variables) = ratio * tau.A.block(k + 6, 0, 1, problem.n_variables);
-        e.b[constraint] = ratio * tau.b[k + 6];
+        e.A.block(constraint, 0, 1, problem.n_variables) = ratio_upper * tau.A.block(k + 6, 0, 1, problem.n_variables);
+        e.b[constraint] = ratio_upper * tau.b[k + 6];
         e.A(constraint, k + 6) += dt;
-        e.b[constraint] += qd - robot.model.velocityLimit[k + 6];
+        e.b[constraint] += qd - upper_limit;
         constraint++;
 
-        // qd + dt*qdd >= -qd_max - ratio * tau
-        // -ratio*tau - dt*qdd - qd - qd_max <= 0
-        e.A.block(constraint, 0, 1, problem.n_variables) = -ratio * tau.A.block(k + 6, 0, 1, problem.n_variables);
-        e.b[constraint] = -ratio * tau.b[k + 6];
+        // qd + dt*qdd >= qd_min - ratio * tau
+        // -ratio*tau - dt*qdd - qd + qd_min <= 0
+        e.A.block(constraint, 0, 1, problem.n_variables) = -ratio_lower * tau.A.block(k + 6, 0, 1, problem.n_variables);
+        e.b[constraint] = -ratio_lower * tau.b[k + 6];
         e.A(constraint, k + 6) -= dt;
-        e.b[constraint] -= qd + robot.model.velocityLimit[k + 6];
+        e.b[constraint] -= qd - lower_limit;
         constraint++;
       }
       else if (velocity_limits)
       {
-        e.A(constraint, k + 6) = dt;
-        e.b(constraint) = -robot.model.velocityLimit[k + 6] + qd;
-        constraint++;
+        if (robot.use_asymmetric_velocity_limits)
+        {
+          // Upper velocity limit: qd + dt*qdd <= upper_limit
+          e.A(constraint, k + 6) = dt;
+          e.b(constraint) = -robot.upper_velocity_limits[k + 6] + qd;
+          constraint++;
 
-        e.A(constraint, k + 6) = -dt;
-        e.b(constraint) = -robot.model.velocityLimit[k + 6] - qd;
-        constraint++;
+          // Lower velocity limit: qd + dt*qdd >= lower_limit
+          e.A(constraint, k + 6) = -dt;
+          e.b(constraint) = robot.lower_velocity_limits[k + 6] - qd;
+          constraint++;
+        }
+        else
+        {
+          // Symmetric velocity limits (original behavior)
+          e.A(constraint, k + 6) = dt;
+          e.b(constraint) = -robot.model.velocityLimit[k + 6] + qd;
+          constraint++;
+
+          e.A(constraint, k + 6) = -dt;
+          e.b(constraint) = -robot.model.velocityLimit[k + 6] - qd;
+          constraint++;
+        }
       }
 
       if (joint_limits)

@@ -325,8 +325,19 @@ void KinematicsSolver::compute_limits_inequalities()
       {
         continue;  // Skip the universe joint
       }
-      problem.add_constraint(qd->expr(joint.idx_v(), 1) <= dt * robot.model.velocityLimit(joint.idx_v()));
-      problem.add_constraint(-dt * robot.model.velocityLimit(joint.idx_v()) <= qd->expr(joint.idx_v(), 1));
+      
+      if (robot.use_asymmetric_velocity_limits)
+      {
+        // Use asymmetric velocity limits
+        problem.add_constraint(qd->expr(joint.idx_v(), 1) <= dt * robot.upper_velocity_limits(joint.idx_v()));
+        problem.add_constraint(dt * robot.lower_velocity_limits(joint.idx_v()) <= qd->expr(joint.idx_v(), 1));
+      }
+      else
+      {
+        // Use symmetric velocity limits (original behavior)
+        problem.add_constraint(qd->expr(joint.idx_v(), 1) <= dt * robot.model.velocityLimit(joint.idx_v()));
+        problem.add_constraint(-dt * robot.model.velocityLimit(joint.idx_v()) <= qd->expr(joint.idx_v(), 1));
+      }
     }
   }
 }
@@ -431,7 +442,7 @@ Eigen::VectorXd KinematicsSolver::solve(bool apply)
     // Initial robot configuration
     auto q_save = robot.state.q;
 
-    robot.state.q = pinocchio::integrate(robot.model, robot.state.q, qd_sol * dt);
+    robot.state.q = pinocchio::integrate(robot.model, robot.state.q, qd_sol);
     if (dt > 0)
     {
       auto qd_save = robot.state.qd;

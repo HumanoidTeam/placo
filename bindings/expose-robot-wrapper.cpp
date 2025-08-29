@@ -40,7 +40,13 @@ void exposeRobotType(class_<RobotType, W1>& type)
       .def("set_joint_acceleration", &RobotType::set_joint_acceleration)
       .def("get_joint_acceleration", &RobotType::get_joint_acceleration)
       .def("set_velocity_limit", &RobotType::set_velocity_limit)
-      .def("set_velocity_limits", &RobotType::set_velocity_limits)
+      .def("set_velocity_limits", 
+           static_cast<void (RobotType::*)(double)>(&RobotType::set_velocity_limits))
+      .def("set_velocity_limits", 
+           static_cast<void (RobotType::*)(const std::string&, double, double)>(&RobotType::set_velocity_limits))
+      .def("set_velocity_limits", 
+           static_cast<void (RobotType::*)(double, double)>(&RobotType::set_velocity_limits))
+      .def("get_velocity_limits", &RobotType::get_velocity_limits)
       .def("set_torque_limit", &RobotType::set_torque_limit)
       .def("set_joint_limits", &RobotType::set_joint_limits)
       .def(
