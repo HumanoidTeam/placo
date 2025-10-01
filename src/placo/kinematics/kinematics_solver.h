@@ -21,6 +21,7 @@
 #include "placo/kinematics/regularization_task.h"
 #include "placo/kinematics/manipulability_task.h"
 #include "placo/kinematics/kinetic_energy_regularization_task.h"
+#include "placo/kinematics/acceleration_regularization_task.h"
 #include "placo/kinematics/centroidal_momentum_task.h"
 #include "placo/kinematics/axis_align_task.h"
 
@@ -275,6 +276,17 @@ public:
    * @return regularization task
    */
   KineticEnergyRegularizationTask& add_kinetic_energy_regularization_task(double magnitude = 1e-6);
+
+  /**
+   * @brief Adds an acceleration regularization task
+   * 
+   * This task minimizes joint accelerations by penalizing changes in velocity.
+   * Requires dt to be set.
+   * 
+   * @param magnitude regularization magnitude
+   * @return acceleration regularization task
+   */
+  AccelerationRegularizationTask& add_acceleration_regularization_task(double magnitude = 1e-6);
 
   /**
    * @brief Adds a self collision avoidance constraint

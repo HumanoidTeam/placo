@@ -211,6 +211,14 @@ KineticEnergyRegularizationTask& KinematicsSolver::add_kinetic_energy_regulariza
   return task;
 }
 
+AccelerationRegularizationTask& KinematicsSolver::add_acceleration_regularization_task(double magnitude)
+{
+  AccelerationRegularizationTask& task = add_task(new AccelerationRegularizationTask());
+  task.configure("acceleration_regularization", Task::Priority::Soft, magnitude);
+
+  return task;
+}
+
 AvoidSelfCollisionsConstraint& KinematicsSolver::add_avoid_self_collisions_constraint()
 {
   return add_constraint(new AvoidSelfCollisionsConstraint());

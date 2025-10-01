@@ -85,6 +85,10 @@ void exposeKinematics()
           .def("add_kinetic_energy_regularization_task", &KinematicsSolver::add_kinetic_energy_regularization_task,
                return_internal_reference<>())
 
+          // Acceleration regularization task
+          .def("add_acceleration_regularization_task", &KinematicsSolver::add_acceleration_regularization_task,
+               return_internal_reference<>())
+
           // Avoid self collisions constraint
           .def("add_avoid_self_collisions_constraint", &KinematicsSolver::add_avoid_self_collisions_constraint,
                return_internal_reference<>())
@@ -231,6 +235,8 @@ void exposeKinematics()
       .def_readonly("manipulability", &ManipulabilityTask::manipulability);
 
   class__<KineticEnergyRegularizationTask, bases<RegularizationTask>>("KineticEnergyRegularizationTask");
+
+  class__<AccelerationRegularizationTask, bases<Task>>("AccelerationRegularizationTask");
 
   class__<Constraint, bases<tools::Prioritized>, boost::noncopyable>("KinematicsConstraint", no_init);
 
