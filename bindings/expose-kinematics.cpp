@@ -222,7 +222,17 @@ void exposeKinematics()
       .add_property("mask", &CentroidalMomentumTask::mask)
       .add_property("L_world", &CentroidalMomentumTask::L_world, &CentroidalMomentumTask::L_world);
 
-  class__<RegularizationTask, bases<Task>>("RegularizationTask");
+  class__<RegularizationTask, bases<Task>>("RegularizationTask")
+      .def("set_joint", &RegularizationTask::set_joint)
+      .def(
+          "set_joints", +[](RegularizationTask& task, boost::python::dict& py_dict) {
+            for (int i = 0; i < boost::python::len(py_dict); i++)
+            {
+              auto keys = py_dict.keys();
+              std::string joint = boost::python::extract<std::string>(keys[i]);
+              task.set_joint(joint);
+            }
+          });
 
   class__<ManipulabilityTask, bases<Task>>("ManipulabilityTask",
                                            init<RobotWrapper::FrameIndex, ManipulabilityTask::Type, double>())
