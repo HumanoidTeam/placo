@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>placo</name>
+  <version>0.0.1</version>
+  <description>Placo solver library</description>
+  <maintainer email="user@example.com">user</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <depend>eigen</depend>
+  <depend>pinocchio</depend>
+  <depend>eiquadprog</depend>
+  <depend>eigenpy</depend>
+  <depend>jsoncpp</depend>
+  <depend>boost</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
