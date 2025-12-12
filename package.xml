@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>placo</name>
-  <version>0.0.1</version>
+  <version>0.0.0</version>
   <description>Placo solver library</description>
-  <maintainer email="user@example.com">user</maintainer>
+  <maintainer email="ssam@skl.vc">user</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>cmake</buildtool_depend>
@@ -12,8 +13,7 @@
   <depend>pinocchio</depend>
   <depend>eiquadprog</depend>
   <depend>eigenpy</depend>
-  <depend>jsoncpp</depend>
-  <depend>boost</depend>
+  <depend>libboost-python-dev</depend>
 
   <export>
     <build_type>cmake</build_type>

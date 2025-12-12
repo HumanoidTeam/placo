@@ -121,8 +121,9 @@ add_library(libplaco SHARED
 
 target_include_directories(libplaco PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> 
+  $<INSTALL_INTERFACE:include>
   ${PROTOBUF_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_BINARY_DIR})
+  )
 
 target_link_libraries(libplaco PUBLIC
     Eigen3::Eigen
@@ -191,7 +192,48 @@ set_target_properties(placo PROPERTIES INSTALL_RPATH "\$ORIGIN/../..")
 set_target_properties(libplaco PROPERTIES INSTALL_RPATH "\$ORIGIN")
 endif()
 
-install(TARGETS libplaco DESTINATION lib)
 install(TARGETS placo DESTINATION ${PYTHON_SITELIB})
 # install(FILES ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo.pyi DESTINATION ${PYTHON_SITELIB})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo_utils DESTINATION ${PYTHON_SITELIB})
+
+# Install Headers
+install(DIRECTORY src/placo DESTINATION include)
+
+# Export libplaco for C++ usage
+install(TARGETS libplaco
+    EXPORT placoTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+
+install(EXPORT placoTargets
+    FILE placoTargets.cmake
+    NAMESPACE placo::
+    DESTINATION share/placo/cmake
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/placoConfigVersion.cmake"
+    VERSION 0.0.0
+    COMPATIBILITY AnyNewerVersion
+)
+
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/placoConfig.cmake"
+    "include(CMakeFindDependencyMacro)\n"
+    "find_dependency(Eigen3)\n"
+    "find_dependency(Threads)\n"
+    "find_dependency(pinocchio)\n"
+    "find_dependency(eiquadprog)\n"
+    "find_dependency(eigenpy)\n"
+    "find_dependency(jsoncpp)\n"
+    "include(\"\${CMAKE_CURRENT_LIST_DIR}/placoTargets.cmake\")\n"
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/placoConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/placoConfigVersion.cmake"
+    DESTINATION share/placo/cmake
+)
