@@ -78,8 +78,9 @@ void exposeKinematics()
           .def("add_regularization_task", &KinematicsSolver::add_regularization_task, return_internal_reference<>())
 
           // Manipulability task
-          .def<ManipulabilityTask& (KinematicsSolver::*)(std::string, std::string, double)>(
-              "add_manipulability_task", &KinematicsSolver::add_manipulability_task, return_internal_reference<>())
+          .def<ManipulabilityTask& (KinematicsSolver::*)(std::string, std::string, double, std::vector<std::string>)>(
+              "add_manipulability_task", &KinematicsSolver::add_manipulability_task, return_internal_reference<>(),
+              (arg("frame"), arg("type") = "both", arg("lambda") = 1.0, arg("joints") = std::vector<std::string>()))
 
           // Kinetic energy regularization task
           .def("add_kinetic_energy_regularization_task", &KinematicsSolver::add_kinetic_energy_regularization_task,

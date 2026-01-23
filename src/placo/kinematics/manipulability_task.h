@@ -1,6 +1,7 @@
 #pragma once
 
 #include "placo/kinematics/task.h"
+#include <vector>
 
 namespace placo::kinematics
 {
@@ -21,6 +22,11 @@ struct ManipulabilityTask : public Task
   virtual std::string error_unit();
 
   Eigen::MatrixXd mask_matrix(Eigen::MatrixXd M);
+
+  /**
+   * @brief Joint indices to consider for manipulability computation (if empty, all joints are considered)
+   */
+  std::vector<int> joint_indices;
 
   /**
    * @brief Index of the frame we want to set manipulability

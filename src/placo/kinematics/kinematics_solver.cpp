@@ -180,7 +180,7 @@ ManipulabilityTask& KinematicsSolver::add_manipulability_task(model::RobotWrappe
   return add_task(new ManipulabilityTask(frame, type, lambda));
 }
 
-ManipulabilityTask& KinematicsSolver::add_manipulability_task(std::string frame, std::string type, double lambda)
+ManipulabilityTask& KinematicsSolver::add_manipulability_task(std::string frame, std::string type, double lambda, std::vector<std::string> joints)
 {
   ManipulabilityTask::Type type_;
   if (type == "position")
@@ -200,7 +200,19 @@ ManipulabilityTask& KinematicsSolver::add_manipulability_task(std::string frame,
     throw std::runtime_error("Unknown manipulability type: " + type);
   }
 
-  return add_manipulability_task(robot.get_frame_index(frame), type_, lambda);
+  ManipulabilityTask& task = add_manipulability_task(robot.get_frame_index(frame), type_, lambda);
+  if (!joints.empty())
+  {
+    task.joint_indices.clear();
+    for (const auto& joint : joints)
+    {
+      int joint_id = robot.model.getJointId(joint);
+      int joint_v_offset = robot.model.joints[joint_id].idx_v();
+      task.joint_indices.push_back(joint_v_offset);
+    }
+  }
+
+  return task;
 }
 
 KineticEnergyRegularizationTask& KinematicsSolver::add_kinetic_energy_regularization_task(double magnitude)

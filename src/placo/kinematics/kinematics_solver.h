@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 #include <set>
+#include <vector>
 
 #include "placo/model/robot_wrapper.h"
 
@@ -267,7 +268,7 @@ public:
    * @param type type (position, orientation or both)
    * @return manipulability task
    */
-  ManipulabilityTask& add_manipulability_task(std::string frame, std::string type = "both", double lambda_ = 1.0);
+  ManipulabilityTask& add_manipulability_task(std::string frame, std::string type = "both", double lambda_ = 1.0, std::vector<std::string> joints = {});
 
   /**
    * @brief Adds a kinetic energy regularization task for a given magnitude
