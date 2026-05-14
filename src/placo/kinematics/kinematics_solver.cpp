@@ -174,6 +174,15 @@ RegularizationTask& KinematicsSolver::add_regularization_task(double magnitude)
   return task;
 }
 
+JointsRegularizationTask& KinematicsSolver::add_joints_regularization_task(std::vector<std::string> joints,
+                                                                            double magnitude)
+{
+  JointsRegularizationTask& task = add_task(new JointsRegularizationTask());
+  task.joints = std::move(joints);
+  task.configure("joints_regularization", Task::Priority::Soft, magnitude);
+  return task;
+}
+
 ManipulabilityTask& KinematicsSolver::add_manipulability_task(model::RobotWrapper::FrameIndex frame,
                                                               ManipulabilityTask::Type type, double lambda)
 {

@@ -195,6 +195,13 @@ int RobotWrapper::get_joint_offset(const std::string& name)
 
 int RobotWrapper::get_joint_v_offset(const std::string& name)
 {
+  if (!model.existJointName(name))
+  {
+    std::ostringstream oss;
+    oss << "Joint with name " << name << " not found in model";
+    throw std::runtime_error(oss.str());
+  }
+
   return model.joints[model.getJointId(name)].idx_v();
 }
 

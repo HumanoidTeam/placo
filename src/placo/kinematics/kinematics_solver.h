@@ -19,6 +19,7 @@
 #include "placo/kinematics/gear_task.h"
 #include "placo/kinematics/wheel_task.h"
 #include "placo/kinematics/regularization_task.h"
+#include "placo/kinematics/joints_regularization_task.h"
 #include "placo/kinematics/manipulability_task.h"
 #include "placo/kinematics/kinetic_energy_regularization_task.h"
 #include "placo/kinematics/centroidal_momentum_task.h"
@@ -253,6 +254,14 @@ public:
    * @return regularization task
    */
   RegularizationTask& add_regularization_task(double magnitude = 1e-6);
+
+  /**
+   * @brief Adds a velocity regularization task restricted to a list of joints
+   * @param joints joint names to regularise
+   * @param magnitude regularization magnitude
+   * @return joints regularization task
+   */
+  JointsRegularizationTask& add_joints_regularization_task(std::vector<std::string> joints, double magnitude = 1e-6);
 
   /**
    * @brief Adds a manipulability regularization task for a given magnitude

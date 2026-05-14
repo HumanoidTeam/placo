@@ -77,6 +77,18 @@ void exposeKinematics()
           // Regularization task
           .def("add_regularization_task", &KinematicsSolver::add_regularization_task, return_internal_reference<>())
 
+          // Joints regularization task (velocity reg restricted to a list of joints)
+          .def("add_joints_regularization_task",
+               +[](KinematicsSolver& solver, boost::python::list py_joints, double magnitude) -> JointsRegularizationTask& {
+                 std::vector<std::string> joints;
+                 for (int i = 0; i < boost::python::len(py_joints); ++i)
+                 {
+                   joints.push_back(boost::python::extract<std::string>(py_joints[i]));
+                 }
+                 return solver.add_joints_regularization_task(joints, magnitude);
+               },
+               return_internal_reference<>())
+
           // Manipulability task
           .def<ManipulabilityTask& (KinematicsSolver::*)(std::string, std::string, double)>(
               "add_manipulability_task", &KinematicsSolver::add_manipulability_task, return_internal_reference<>())
@@ -202,6 +214,8 @@ void exposeKinematics()
           "set_joints", +[](JointsTask& task, boost::python::dict& py_dict) {
             update_map<std::string, double>(task.joints, py_dict);
           });
+
+  class__<JointsRegularizationTask, bases<Task>>("JointsRegularizationTask", init<>());
 
   class__<GearTask, bases<Task>>("GearTask", init<>())
       .def("set_gear", &GearTask::set_gear)
