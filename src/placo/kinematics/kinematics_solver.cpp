@@ -271,6 +271,17 @@ DistanceConstraint& KinematicsSolver::add_distance_constraint(std::string frame_
   return add_distance_constraint(robot.get_frame_index(frame_a), robot.get_frame_index(frame_b), distance_max);
 }
 
+void KinematicsSolver::apply_excluded_dofs_to_task(Task& task)
+{
+  for (const int offset : task.excluded_dofs())
+  {
+    if (0 <= offset && offset < task.A.cols())
+    {
+      task.A.col(offset).setZero();
+    }
+  }
+}
+
 void KinematicsSolver::mask_dof(std::string dof)
 {
   masked_dof.insert(robot.get_joint_v_offset(dof));
@@ -374,6 +385,11 @@ Eigen::VectorXd KinematicsSolver::solve(bool apply)
     {
       continue;
     }
+
+    // Task-local DoF ownership: zero the columns of A for DoFs this task is not allowed to
+    // use. This only removes the task's influence on those DoFs; it does not constrain them
+    // globally (that is what mask_dof does) and it does not change the task error b.
+    apply_excluded_dofs_to_task(*task);
 
     // This could be written (task->A * qd->expr() == task->b), but would come with the
     // significant cost of multiplying A with identity matrix for each task

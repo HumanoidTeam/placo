@@ -531,6 +531,14 @@ protected:
 
   void compute_limits_inequalities();
 
+  /**
+   * @brief Zeroes the columns of a task's A matrix that correspond to its task-local
+   * excluded DoFs (see \ref Task::exclude_dof). Uses velocity offsets resolved when the
+   * exclusion set changes. Called during \ref solve after each task update.
+   * @param task the task whose A matrix should be filtered
+   */
+  void apply_excluded_dofs_to_task(Task& task);
+
   // Task id (this is only useful when task names are not specified, each task will have an unique ID)
   int task_id = 0;
   int constraint_id = 0;

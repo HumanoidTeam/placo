@@ -146,7 +146,10 @@ void exposeKinematics()
       .def_readonly("b", &Task::b)
       .def("error", &Task::error)
       .def("error_norm", &Task::error_norm)
-      .def("update", &Task::update);
+      .def("update", &Task::update)
+      .def("exclude_dof", &Task::exclude_dof)
+      .def("include_dof", &Task::include_dof)
+      .def("clear_excluded_dofs", &Task::clear_excluded_dofs);
 
   class__<PositionTask, bases<Task>>("PositionTask", init<RobotWrapper::FrameIndex, Eigen::Vector3d>())
       .add_property("frame_index", &PositionTask::frame_index)
@@ -187,6 +190,9 @@ void exposeKinematics()
           "orientation", +[](const FrameTask& task) -> OrientationTask& { return *task.orientation; },
           return_internal_reference<>())
       .def("configure", &FrameTask::configure, frametask_configure_overloads())
+      .def("exclude_dof", &FrameTask::exclude_dof)
+      .def("include_dof", &FrameTask::include_dof)
+      .def("clear_excluded_dofs", &FrameTask::clear_excluded_dofs)
       .add_property("T_world_frame", &FrameTask::get_T_world_frame, &FrameTask::set_T_world_frame);
 
   class__<RelativeFrameTask>("RelativeFrameTask", init<RelativePositionTask&, RelativeOrientationTask&>())

@@ -48,5 +48,24 @@ struct FrameTask
    * @param T_world_frame transformation
    */
   void set_T_world_frame(Eigen::Affine3d T_world_frame);
+
+  /**
+   * @brief Excludes a degree of freedom (by joint name) from both the underlying position
+   * and orientation tasks. See \ref Task::exclude_dof.
+   * @param dof the joint name to exclude
+   */
+  void exclude_dof(const std::string& dof);
+
+  /**
+   * @brief Re-includes a previously excluded degree of freedom on both underlying tasks.
+   * This is an idempotent no-op when the name is not currently excluded.
+   * @param dof the joint name to include
+   */
+  void include_dof(const std::string& dof);
+
+  /**
+   * @brief Clears task-local excluded degrees of freedom on both underlying tasks.
+   */
+  void clear_excluded_dofs();
 };
 }  // namespace placo::kinematics

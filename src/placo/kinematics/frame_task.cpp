@@ -30,4 +30,22 @@ void FrameTask::set_T_world_frame(Eigen::Affine3d T_world_frame)
   position->target_world = T_world_frame.translation();
   orientation->R_world_frame = T_world_frame.linear();
 }
+
+void FrameTask::exclude_dof(const std::string& dof)
+{
+  position->exclude_dof(dof);
+  orientation->exclude_dof(dof);
+}
+
+void FrameTask::include_dof(const std::string& dof)
+{
+  position->include_dof(dof);
+  orientation->include_dof(dof);
+}
+
+void FrameTask::clear_excluded_dofs()
+{
+  position->clear_excluded_dofs();
+  orientation->clear_excluded_dofs();
+}
 }  // namespace placo::kinematics

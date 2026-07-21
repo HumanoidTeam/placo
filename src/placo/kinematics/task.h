@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <string>
 #include <Eigen/Dense>
 #include "placo/model/robot_wrapper.h"
@@ -71,5 +72,43 @@ public:
    * @return task error norm
    */
   virtual double error_norm();
+
+  /**
+   * @brief Excludes a degree of freedom (by joint name) from being used by this task.
+   *
+   * Unlike \ref KinematicsSolver::mask_dof, which is a solver-global hard constraint
+   * (qd[dof] == 0), this is a task-local exclusion: the solver zeroes the corresponding
+   * column of this task's \ref A matrix before building the QP. The task still reports the
+   * same error \ref b, but it cannot reduce that error using the excluded DoF. Other tasks
+   * remain free to move the DoF. This implements task-local DoF ownership.
+   * @param dof the joint name to exclude
+   */
+  void exclude_dof(const std::string& dof);
+
+  /**
+   * @brief Re-includes a previously excluded degree of freedom (by joint name).
+   * This is an idempotent no-op when the name is not currently excluded.
+   * @param dof the joint name to include
+   */
+  void include_dof(const std::string& dof);
+
+  /**
+   * @brief Clears all task-local excluded degrees of freedom.
+   */
+  void clear_excluded_dofs();
+
+  /**
+   * @brief Returns the velocity offsets excluded from this task.
+   * @return excluded velocity offsets
+   */
+  const std::set<int>& excluded_dofs() const;
+
+protected:
+  /**
+   * @brief Velocity offsets excluded from this task (task-local DoF ownership).
+   * Joint names are resolved when the exclusion set changes so solving does not repeat
+   * model lookups and invalid names fail immediately.
+   */
+  std::set<int> excluded_dofs_;
 };
 }  // namespace placo::kinematics
