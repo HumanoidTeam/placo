@@ -3,9 +3,25 @@ project(placo)
 
 set(Boost_DEBUG ON)
 set(BOOST_ROOT $ENV{CONDA_PREFIX})
-set(Boost_PYTHON_TYPE python311)
-set(BOOST_PYTHON_VERSION 3.11)
-find_package(Boost REQUIRED COMPONENTS python311)
+# Derive the Boost.Python component from the active interpreter so the build
+# works on both Python 3.11 (Isaac Sim 5.1) and 3.12 (Isaac Sim 6.0).
+#
+# Restrict discovery to the active conda/pixi environment and request only the
+# Interpreter: we just need its version to pick the matching libboost_python
+# component. Without the venv constraint, CMake's FindPython3 prefers the newest
+# interpreter on PATH (e.g. a system Python 3.12 with no development headers),
+# which both fails configuration and yields a Boost.Python name that doesn't
+# match the env's libboost. colcon/ament pass the env interpreter as
+# PYTHON_EXECUTABLE, but FindPython3 only honors Python3_EXECUTABLE, so forward
+# it as a hint.
+set(Python3_FIND_VIRTUALENV ONLY)
+if(DEFINED PYTHON_EXECUTABLE)
+  set(Python3_EXECUTABLE "${PYTHON_EXECUTABLE}")
+endif()
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+set(Boost_PYTHON_TYPE python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR})
+set(BOOST_PYTHON_VERSION ${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+find_package(Boost REQUIRED COMPONENTS ${Boost_PYTHON_TYPE})
 find_package(Threads)
 find_package(pinocchio REQUIRED)
 find_package(eiquadprog REQUIRED)
@@ -165,7 +181,7 @@ set_target_properties(placo PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_D
 target_compile_definitions(placo PUBLIC -DBOOST_DISABLE_PRAGMA_MESSAGE)
 
 # target_link_libraries(placo ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} libplaco)
-target_link_libraries(placo Boost::python311 ${PYTHON_LIBRARIES} libplaco)
+target_link_libraries(placo Boost::${Boost_PYTHON_TYPE} ${PYTHON_LIBRARIES} libplaco)
 target_include_directories(placo PRIVATE ${PYTHON_INCLUDE_DIRS})
 
 # add_custom_command(
